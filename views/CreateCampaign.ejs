@@ -1,0 +1,154 @@
+<!doctype html>
+<html>
+<head>
+
+<script type="text/javascript" src="http://code.jquery.com/jquery-2.0.3.min.js"></script>
+<script type="text/javascript" src="jquery.uploadPreview.min.js"></script>
+    <title>Create Campaign</title>
+    
+    
+    <meta charset="utf-8">
+  <meta http-equiv="Content-Type" content="text/html">
+  <!--<link rel="shortcut icon" href="http://static.tmimgcdn.com/img/favicon.ico">
+  <link rel="icon" href="http://static.tmimgcdn.com/img/favicon.ico">-->
+  <link rel="stylesheet" type="text/css" media="all" href="styles.css">
+  <link rel="stylesheet" type="text/css" media="all" href="switchery/dist/switchery.min.css">
+  
+  <script type="text/javascript" src="create-campaign.js"></script>
+</head>
+<body>
+
+    <h1>Create Campaign</h1>
+<form id="form" action="/PostCampaign" method="POST" enctype="multipart/form-data">
+  <div class="col-2">
+    <label>
+      Name
+      <input placeholder="What is your campaign name?" id="name" name="name" required>
+    </label>
+  </div>
+  <div class="col-2">
+    <label>
+      Company
+      <input placeholder="What is your company name?" id="company" name="company" required>
+    </label>
+  </div>
+   <!--------------------------------------------------------------------------------------------audi------------------------------------------->
+  <div class="col-2">
+    <label>
+      Audio file
+      <style type="text/css">
+#audio-preview {
+  background: #ffffff;
+  width: auto;
+  padding: 20px;
+  display: inline-block;
+}
+
+#audio-upload {
+  cursor: pointer;
+  background-color: #bdc3c7;
+  color: #ecf0f1;
+  padding: 20px;
+  font-size: 20px;
+  text-transform: uppercase;
+}
+</style>
+
+<script type="text/javascript">
+$(document).ready(function() {
+  $.uploadPreview({
+    input_field: "#audio",
+    preview_box: "#audio-preview",
+    no_label: true
+  });
+});
+</script>
+
+<div id="audio-preview">No file selected</div><br />
+      <input type="file" id="audio" name="audio" >
+    </label>
+  </div>
+  
+  <!--------------------------------------------------------------------------------------------image------------------------------------------->
+    <div class="col-2">
+    <label>
+      Campaign image file
+      <input type="file" id="img" name="image" >
+    </label>
+  </div>
+    <div class="col-3">
+    <label>
+      Budget
+      <input placeholder="What is your campign budget?" id="budget" name="budget" tabindex="6" required>
+    </label>
+  </div>
+  <div class="col-3">
+    <label>
+      Payment per second
+      <input placeholder="How much will you pay per second of listening to your campaign?" id="pps" name="pps" tabindex="4" required>
+    </label>
+  </div>
+    <div class="col-3">
+    <label>
+      Payment per full listen
+      <input placeholder="How much will you pay for full listening to your campign?" id="ppfl" name="ppfl" tabindex="4" required>
+    </label>
+  </div>
+    </div>
+    
+
+<hr>
+<hr>
+<div class="col-1" style="text-align:center;"><label style="text-align:center; ">Optional Parameters</label></div>
+<hr>
+    <div class="col-3">
+    <label>
+      User Activity
+      <select  form="form">
+        <option value="">Select</option>
+        <option value="STILL">Stand Still</option>
+        <option value="WALKING">Walking</option>
+        <option value="RUNNING">Running</option>
+        <option value="ON_BICYCLE">Bicycle</option>
+        <option value="ON_VEHICLE">Driving</option>
+      </select>
+      
+    </label>
+  </div>
+
+ <div class="col-3"><label>User Location</label><button type="button"  class="submitbtn" id="locationButton">Add Location</button></div>
+ <div id="pinMap">
+     
+  <input type="text" id="latitude" name="latitude" placeholder="latitude">
+  <input type="text" id="longitude" name="longitude" placeholder="longitude">
+  <input type="number" id="radius" name="radius" placeholder="raduis in meters">
+  <div id="map" style="width:500px; height:500px"></div>
+  
+  <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false"></script>
+
+   
+ </div>
+  <!--<div class="col-3">
+    <label>
+      Availability
+      <select tabindex="5">
+        <option>5-15 hrs per week</option>
+        <option>15-30 hrs per week</option>
+        <option>30-40 hrs per week</option>
+      </select>
+    </label>
+  </div>-->
+ 
+
+ 
+  <div class="col-submit">
+    <button type="submit" id="submitButton" name="submitButton" class="submitbtn">Submit Campaign</button>
+  </div>
+    <div id="testButton" class="col-submit">
+    Test
+  </div>
+ 
+</form>
+   
+</body>
+</html>

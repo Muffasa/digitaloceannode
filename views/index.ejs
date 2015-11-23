@@ -1,0 +1,305 @@
+<!doctype html>
+<html>
+<head>
+   <script src="https://cdn.socket.io/socket.io-1.3.5.js"></script>
+<script>
+    
+</script>
+    <script src='https://cdn.firebase.com/js/client/2.2.7/firebase.js'></script>
+    <title>Twilio Client Test</title>
+</head>
+<body>
+    <p>
+        <h2 id="user">
+            
+        </h2>
+    </p>
+    <p>
+        <input id="call_reciver_name" type="text" placeholder="call by name: tom/kevin "/>
+    </p>
+    <!-- display call status in this paragraph tag -->
+    <p id="status">Awaiting incoming call...</p>
+    <button id="hangup">Hang Up</button>
+ 
+    <br/>
+ 
+    <p>
+        <input id="number" type="text" placeholder="Enter a number like +16519998888"/>
+    </p>
+    <button id="call">Call This Number</button>
+    <button id="answer">Answer Incoming Call</button>
+    
+    <button id="test_ring">Ring Test</button>
+    
+    <div id="dialpad">
+    <table>
+    <tr>
+    <td><input type="button" value="1" id="button1"></td>
+    <td><input type="button" value="2" id="button2"></td>
+    <td><input type="button" value="3" id="button3"></td>
+    </tr>
+    <tr>
+    <td><input type="button" value="4" id="button4"></td>
+    <td><input type="button" value="5" id="button5"></td>
+    <td><input type="button" value="6" id="button6"></td>
+    </tr>
+    <tr>
+    <td><input type="button" value="7" id="button7"></td>
+    <td><input type="button" value="8" id="button8"></td>
+    <td><input type="button" value="9" id="button9"></td>
+    </tr>
+    <tr>
+    <td><input type="button" value="*" id="buttonstar"></td>
+    <td><input type="button" value="0" id="button0"></td>
+    <td><input type="button" value="#" id="buttonpound"></td>
+    </tr>
+    </table>
+    </div>
+    
+     <button id="connect">Connect</button>
+     <button id="disconnect">Disconnect</button>
+     <button id="register">Register</button>
+     <button id="ring">Ring</button>
+     <button id="addcampain">Add Campainn</button>
+     <div>
+         <button id="MTregister">Register To MoneyTunes</button>
+     </div>
+    <!-- include the Twilio Client JavaScript SDK -->
+    <script src="//static.twilio.com/libs/twiliojs/1.1/twilio.min.js"></script>
+ 
+    <!-- include jQuery to make DOM manipulation and event handling nicer -->
+    <script src="//code.jquery.com/jquery-1.9.1.min.js"></script>
+ 
+    <!-- accept incoming calls to this client -->
+    <script type="text/javascript">
+    var peerConvManager=null;
+    var Connection = null;
+    var UserName = '<%= userName %>';
+    var socket = null;
+    $('#user').html(UserName);
+        // Set up the Twilio "Device" (think of it as the browser's phone) with
+        // our server-generated capability token, which will be inserted by the
+        // EJS template system:
+        Twilio.Device.setup('<%= token %>');
+ 
+        // Register an event handler to be called when there is an incoming
+        // call:
+        Twilio.Device.incoming(function(connection) {
+            //For demo purposed, automatically accept the call
+            
+            if (confirm('Accept incoming call from ' + connection.parameters.From + '?')){
+            Connection=connection;
+            connection.accept();
+        
+            $('#status').html('Call in progress...');
+            }
+        });
+ 
+        // Register an event handler for when a call ends for any reason
+        Twilio.Device.disconnect(function(connection) {
+            $('#status').html('Awaiting incoming call...');
+        });
+ 
+        // Add a click event for the button, which will hang up the current
+        // call when clicked:
+        $('#hangup').click(function() {
+            Twilio.Device.disconnectAll();
+            if(peerConvManager){
+                var changeto="";
+                peerConvManager.once('value',function(snapShot){
+                    if(snapShot.status=="ongoing")
+                      changeto = "ended";
+                    if(snapShot.status=="connecting")
+                      changeto= "canceled";
+                      
+                      peerConvManager.child("status").set(changeto,function(error){
+                        console.log(error);
+                    })
+                    
+                })
+            }
+
+            
+        });
+
+        // Make an outbound call to the number given in the text field:
+        $('#call').on('click', function() {
+
+            // The properties of this object will be sent as POST
+            // Parameters to URL which generates TwiML.
+            var callto="+972-"+$('#call_reciver_name').val();
+            $.get( "http://188.226.198.99:3000/getUidByPhoneNumber/"+callto, function( uid ) {
+              //alert( "Data Loaded: " + uid );
+               peerConvManager = new Firebase("https://mtdemo.firebaseio.com/users/"+uid+"/convManager");
+               //peerConvManager = new Firebase("https://mtdemo.firebaseio.com/campaigns/"+uid+"/convManager");
+               
+               Connection = Twilio.Device.connect({
+                CallerId:'+97243741132', // Replace this value with a verified Twilio number:
+                                         // https://www.twilio.com/user/account/phone-numbers/verified
+
+                PhoneNumber:$('#number').val(), //pass in the value of the text field
+                
+                callMaker:$('#user').val(),
+                call_reciver_name:$('#call_reciver_name').val(),
+                callFrom:$('#user').val(),
+                callTo:callto
+                
+                
+                    });
+                    
+                    peerConvManager.child("status").set("connecting",function(error){
+                        console.log(error);
+                    })
+                    peerConvManager.child("peerCaller").set({uid:"-Jv9blqdxVmMiMTAI0bU",phone_number:"server no number",displayName:"TomFrom Server",profileImageURL:"http://media-cdn.tripadvisor.com/media/photo-s/03/9b/2f/f1/nice.jpg"},function(error){
+                        console.log(error);
+                    })
+                    peerConvManager.child("currentCampaignId").set("-JvKjQFuwj5kZWtgT6sm",function(error){
+                        console.log(error);
+                    })
+               
+               
+            });
+            
+           
+            if(socket)
+            socket.emit('outgoingCall',callto);
+        });
+        
+        $('#answer').on('click', function() {
+
+            // The properties of this object will be sent as POST
+            // Parameters to URL which generates TwiML.
+           Connection = Twilio.Device.connect({
+                CallerId:'+97243741132', // Replace this value with a verified Twilio number:
+                                         // https://www.twilio.com/user/account/phone-numbers/verified
+
+                AnswerQ:UserName +'Q'
+                
+                
+            });
+        });
+        
+        
+        $('#test_ring').on('click', function() {
+
+            var rington = new Audio('./' + UserName + 's_ring.mp3');
+            rington.play();
+                
+                
+        });
+        
+        $('#connect').on('click', function() {
+
+           socket = io('http://188.226.198.99:3000');
+             
+            socket.emit('identify',UserName);  
+            socket.on("triggerRing",function(){
+                var rington = new Audio('./' + UserName + 's_ring.mp3');
+                rington.play();
+            });
+                
+        });
+        
+        $('#disconnect').on('click', function() {
+            socket.emit('disconnectt');    
+        });
+        
+        $('#register').on('click', function() {
+            socket.emit('register',UserName);    
+        });
+        
+        $('#ring').on('click', function() {
+            socket.emit('ring',$('#call_reciver_name').val());    
+        });
+        
+        $('#addcampain').on('click', function() {
+            var campian_to_add=
+                {
+                        
+                    Name:'tosafedrin_Shiul_18s',
+                    Audio: {
+                        AudioFile:'http://46.101.148.83:3030/tosafedrin Shiul_18s.mp3',
+                        Language:'heb',
+                        Lenght:18
+                    },
+                    Budget: 1000,
+                    Pay_Per_Second: 0.005,
+                    Pay_Per_Full_Listen: 0.05,
+                
+                    optional_params:{
+                        pricing_params:{
+                            
+                        Pay_Per_Extra_Details: 0.1,
+                        extra_details_active_button:'*'
+                        }
+                        
+                    }
+               
+           };
+           
+            var aroma_campian_to_add={
+                Name:'Aroma Dizzingoff Gordon',
+                
+                Audio:{
+                    AudioFile:'http://46.101.148.83:3030/Aroma dizingoff gordon_8s.mp3',
+                    Language:'heb',
+                    Lenght:8
+                },
+                
+                Budget:5000,
+                Pay_Per_Second:0.01,
+                Pay_Per_Full_Listen:0.1,
+                
+                Optional_Params:{
+                    
+                    pricing_params:{
+                        Deal:{
+                            Pay_Per_Deal:0.5,
+                            Amount_To_Charge:5,
+                            Activation_Button:'5',
+                            Deal_Data_To_Send:'kupon'
+                        }
+                    },
+                    
+                    target_params:{
+                        target_erea:{
+                            location:{lat:32.081713,lon:34.773771},
+                            radius:2500
+                        }
+                    },
+                    
+                    global_activate_params:{
+                        Time:{
+                            
+                        },
+                        Whether:{
+                            
+                        }
+                        
+                    }
+                }
+                    
+            };
+                
+            
+                
+            socket.emit('addcampain',campian_to_add);    
+        });
+        
+        
+        $.each(['0','1','2','3','4','5','6','7','8','9','star','pound'], function(index, value) { 
+        $('#button' + value).click(function(){ 
+            if(Connection) {
+                if (value=='star')
+                    Connection.sendDigits('*')
+                else if (value=='pound')
+                    Connection.sendDigits('#')
+                else
+                    Connection.sendDigits(value)
+                return false;
+            } 
+            });
+    });
+    </script>
+</body>
+</html>
